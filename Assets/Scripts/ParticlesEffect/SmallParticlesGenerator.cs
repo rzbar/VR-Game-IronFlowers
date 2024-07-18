@@ -18,25 +18,43 @@ public class SmallParticlesGenerator : MonoBehaviour
     private void Start()
     {
         collisionEvents = new List<ParticleCollisionEvent>();
+        part = GetComponent<ParticleSystem>();
     }
 
     private void OnParticleCollision(GameObject other)
     {
+        
+        // 清空之前的碰撞事件
+        collisionEvents.Clear();
         //获取事件数量，并将事件存储入事件数组
-        part.GetCollisionEvents(other, collisionEvents);
+        part.GetCollisionEvents(other,collisionEvents);
         int count = part.GetSafeCollisionEventSize();
-        print(count);
+        //print(count);
 
         for (int i = 0; i < count; i++)
         {
-            //为防止过多粒子造成性能问题，对小粒子的生成进行控制
-            if (Random.value < SmallParticleGenerationProbability) return;
-
-            //创建小粒子系统
+            //Vector3 vet= collisionEvents[i].velocity;  
+            //print (vet);
+            // 从碰撞事件中获取位置
             Vector3 pos = collisionEvents[i].intersection;
-            print(pos);
-            GameObject smallSpark = Instantiate(SmallSparks, pos, new Quaternion());
-            Destroy(smallSpark, 2f);
+
+            // 验证位置是否正确
+            if (pos != Vector3.zero)
+            {
+                // 为防止过多粒子造成性能问题，对小粒子的生成进行控制
+                if (Random.value < SmallParticleGenerationProbability)
+                {
+                    // 创建小粒子系统
+                    GameObject smallSpark = Instantiate(SmallSparks, pos, Quaternion.identity);
+                    Destroy(smallSpark, 2f);
+                    print(smallSpark.name);
+                }
+            }
+            else
+            {
+                // 输出错误信息，调试位置为 Vector3.zero 的问题
+                print(666);
+            }
         }
     }
 }
