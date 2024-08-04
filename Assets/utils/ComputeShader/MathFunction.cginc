@@ -61,7 +61,30 @@ float3 slerp(float3 a, float3 b, float t)
 //======================================================
 //Quaternion
 
+float4 UNIT_QUATERNION = float4(0.0, 0.0, 0.0, 1.0);
 
+//returns the conjugate quaternion
+返回共轭四元数
+float4 conjugate(float4 q) {
+    return float4(-q.xyz, q.w);
+}
+
+//returns the rotated quaternion of corresponding multiple of angle
+//返回角度的对应倍数的旋转四元数
+float4 angleMultiplier(float4 q, float factor) {
+    float length = length(q.xyz);
+    if (length < EPSILON) return UNIT_QUATERNION;
+
+    float theta = atan2(q.w, length) * factor;//atan2 = atan(q.w / length)
+    return float4(sin(theta) * length, cos(theta));
+}
+
+//derive the ratational quaternion from the axis and angle of rotation
+//根据旋转轴和旋转角得出旋转四元数
+float4 rotationalQuaternion(float3 axis, float angle) {
+    float theta = angle * 0.5;
+    return float4(sin(theta) * normalize(axis), cos(theta));
+}
 
 //======================================================
 
