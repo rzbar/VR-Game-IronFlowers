@@ -9,6 +9,7 @@ TagManager:
   - Water
   - Destroyer
   - Test
+  - Stick
   layers:
   - Default
   - TransparentFX
