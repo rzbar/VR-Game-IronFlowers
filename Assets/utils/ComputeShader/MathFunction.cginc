@@ -35,7 +35,7 @@ float3 projectToPlane(float3 v, float3 n)
     return v - projectToVector(v, n);
 }
 
-//find a orthogonal vector
+//find an orthogonal vector
 float3 findOthogonal(float3 v)
 {
     if (v == UPWARD_UNIT_VECTOR) return FORWARD_UNIT_VECTOR;
@@ -51,7 +51,7 @@ float3 slerp(float3 a, float3 b, float t)
     if (cosOmega > EPSILON_ONE_MINUS) return lerp(a, b, t);
 
     float omege = acos(clamp(cosOmega, -1.0f, 1.0f));
-    return (sin((1.0-t) * omege) * a + sin((t * omege) * b)) / sin(omege);
+    return (sin((1.0f-t) * omege) * a + sin((t * omege) * b)) / sin(omege);
 }
 
 //======================================================
@@ -61,29 +61,98 @@ float3 slerp(float3 a, float3 b, float t)
 //======================================================
 //Quaternion
 
-float4 UNIT_QUATERNION = float4(0.0, 0.0, 0.0, 1.0);
+float4 UNIT_QUATERNION = float4(0.0f, 0.0f, 0.0f, 1.0f);
 
 //returns the conjugate quaternion
-返回共轭四元数
-float4 conjugate(float4 q) {
-    return float4(-q.xyz, q.w);
+//返回共轭四元数
+float4 conjugateQuaternion(float4 quaternion)
+{
+    return float4(-quaternion.xyz, quaternion.w);
+}   
+
+//derive the rotated vector by the rotational quaternion
+//得出通过旋转四元数旋转后的向量
+float3 rotateVector(float3 vec, float4 quaternion)
+{
+    //设四元数为 a + bi + cj + dk ，向量为 xi + yj + zk ，则旋转后向量为：
+    //[(a^2 + b^2 - c^2 - d^2)x + (   2bc    -    2ad   )y + (   2ac    +    2bd   )z]i +
+    //[(   2ad    +    2bc   )x + (a^2 + c^2 - b^2 - d^2)y + (   2cd    -    2ab   )z]j +
+    //[(   2bd    -    2ac   )x + (   2ab    +    2cd   )y + (a^2 + d^2 - b^2 - c^2)z]k     (算了我半个小时...)
+    //下面计算中的四元素在上式来看，格式为(b, c, d, a)，因为游戏引擎中四元素一般以(vector, real number)的形式出现
+    return
+        dot(quaternion.xyz, vec) * quaternion.xyz// = ( (b^2)x + (bc)y + (bd)z, (bc)x + (c^2)y + (cd)z, (bd)x + (cd)y + (b^2)z )
+        + quaternion.w * quaternion.w * vec// = ( (a^2)x, (a^2)y, (a^2)z )
+        + 2.0f * quaternion.w * cross(quaternion.xyz, vec)// = ( (-2ad)y + (2ac)z, (2ad)x + (-2ab)z, (-2ac)x + (2ab)y )
+        - cross(cross(quaternion.xyz, vec), quaternion.xyz);// = - ( (c^2 + d^2)x + (-bc)y + (-bd)z, (-bc)x + (d^2 + b^2)y + (-cd)z, (-bd)x + (-cd)y + (c^2 + b^2)z )
 }
 
 //returns the rotated quaternion of corresponding multiple of angle
 //返回角度的对应倍数的旋转四元数
-float4 angleMultiplier(float4 q, float factor) {
-    float length = length(q.xyz);
+float4 angleMultiplier(float4 quaternion, float factor)
+{
+    float length = length(quaternion.xyz);
     if (length < EPSILON) return UNIT_QUATERNION;
 
-    float theta = atan2(q.w, length) * factor;//atan2 = atan(q.w / length)
-    return float4(sin(theta) * length, cos(theta));
+    float theta = atan2(quaternion.w, length) * factor;//atan2 = atan(q.w / length)
+    return float4(sin(theta) * quaternion.xyz / length, cos(theta));
 }
 
-//derive the ratational quaternion from the axis and angle of rotation
+//derive the rotational quaternion from the axis and angle of rotation
 //根据旋转轴和旋转角得出旋转四元数
-float4 rotationalQuaternion(float3 axis, float angle) {
-    float theta = angle * 0.5;
+float4 getRotationalQuaternion(float3 axis, float angle)
+{
+    float theta = angle * 0.5f;
     return float4(sin(theta) * normalize(axis), cos(theta));
+}
+
+//derive the rotational quaternion of the angle of rotation from the 'from' vector to the 'to' vector
+//得出从from向量旋转到to向量角度的旋转四元数
+float4 getQuaternionFromTo(float3 from, float3 to)
+{
+    float3 crossProduct = cross(from, to);//得到两向量叉积
+    float dotCross = dot(crossProduct, crossProduct);
+
+    if (dotCross < EPSILON) return UNIT_QUATERNION;
+    
+    from = normalize(from);
+    to = normalize(to);
+    float3 axis = crossProduct / sqrt(dotCross);
+    float theta = acos(clamp(dot(from, to), -1.0f, 1.0f));
+    return getRotationalQuaternion(axis, theta);
+}
+
+//get the axis of rotation of quaternion
+float3 getAxisOfQuaternion(float4 quaternion)
+{
+    float dotVector = dot(quaternion.xyz, quaternion.xyz);
+    return dotVector < EPSILON ? float3(0.0f, 0.1f, 0.0f) : quaternion.xyz / sqrt(dotVector);
+}
+
+//get the angle of rotation of quaternion
+float getAngleOfQuaternion(float4 quaternion)
+{
+    return 2.0f * acos(clamp(quaternion.w, -1.0f, 1.0f));
+}
+
+//using normalized linear interpolation for quaternion
+//(对四元数来说，归一化线性插值其实一种平滑的非线性插值)(输入值必须为单位向量，否则结果不会经过初始、最终向量)
+float4 nlerp(float4 quaternion1, float4 quaternion2, float t)
+{
+    float4 value = (1 - t) * quaternion1 + t * quaternion2;
+    float dotValue = dot(value, value);
+    return dotValue < EPSILON ? UNIT_QUATERNION : value / sqrt(dotValue);
+}
+
+//using spherical linear interpolation for quaternions
+//(对四元数的真正线性插值)(比nlerp慢，在四元数夹角比较小时可以交给nlerp)
+float4 slerp(float4 quaternion1, float4 quaternion2, float t)
+{
+    //检查四元数夹角是否过小，防止后续操作中sinTheta由于浮点数的性质被近似为0.0
+    float cosTheta = dot(normalize(quaternion1), normalize(quaternion2));
+    if (cosTheta > EPSILON_ONE_MINUS) return nlerp(quaternion1, quaternion2, t);
+
+    float theta = acos(clamp(cosTheta, -1.0f, 1.0f));
+    return ( sin((1-t) * theta) * quaternion1 + sin(t * theta) * quaternion2 ) / sin(theta);
 }
 
 //======================================================
