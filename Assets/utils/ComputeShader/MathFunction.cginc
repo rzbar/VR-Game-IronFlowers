@@ -1,50 +1,52 @@
 #ifndef MATH_FUNCTION
 #define MATH_FUNCTION
 
-#include "MathCommonNumbers.cginc"
+#include "Assets/utils/ComputeShader/MathCommonNumbers.cginc"
 
+//------------------------------------------------------------------------------------------------------------
 //======================================================
 //Vector
 
 float3 UPWARD_UNIT_VECTOR = float3(0.0f, 1.0f, 0.0f);
 float3 FORWARD_UNIT_VECTOR = float3(1.0f, 0.0f, 0.0f);
 
-float3 SafeNormalize(float3 v, float3 fallback)
+inline float3 SafeNormalize(float3 v, float3 fallback)
 {
     float modulus = dot(v, v);//向量的模
     //假如向量的模为0，则返回一个安全值
     return modulus > EPSILON ? v / sqrt(modulus) : fallback;
 }
 
-float3 SafeNormalize(float3 v)
+inline float3 SafeNormalize(float3 v)
 {
     return SafeNormalize(v, UPWARD_UNIT_VECTOR);
 }
 
 //project a vector to another vector
-float3 projectToVector(float3 v, float3 onto)
+inline float3 projectToVector(float3 v, float3 onto)
 {
     float3 onto_unit = normalize(onto);//投向向量方向的单位向量
     return dot(v, onto) * onto_unit;
 }
 
 //project a vector to a plane
-float3 projectToPlane(float3 v, float3 n)
+inline float3 projectToPlane(float3 v, float3 n)
 {
     //向量减去它自身在法线上自身的投影即为其在平面上的投影
     return v - projectToVector(v, n);
 }
 
 //find an orthogonal vector
-float3 findOthogonal(float3 v)
+inline float3 findOthogonal(float3 v)
 {
-    if (v == UPWARD_UNIT_VECTOR) return FORWARD_UNIT_VECTOR;
+    if (v.x == UPWARD_UNIT_VECTOR.x && v.y == UPWARD_UNIT_VECTOR.y && v.z == UPWARD_UNIT_VECTOR.z)
+        return FORWARD_UNIT_VECTOR;
     return normalize(cross(v, UPWARD_UNIT_VECTOR));
 }
 
 //spherical linear interpolation 几何球面线性插值
 //向量被视为球面上的方向而不是空间中的点。返回的向量的方向通过角度进行插值
-float3 slerp(float3 a, float3 b, float t)
+inline float3 slerp(float3 a, float3 b, float t)
 {
     float cosOmega = dot(normalize(a), normalize(b));
     //当 Ω(omega) → 0 时即 cosOmege → 1 时，这个方程就退化为线性插值方程
@@ -55,9 +57,7 @@ float3 slerp(float3 a, float3 b, float t)
 }
 
 //======================================================
-
-
-
+//------------------------------------------------------------------------------------------------------------
 //======================================================
 //Quaternion
 
@@ -65,14 +65,14 @@ float4 UNIT_QUATERNION = float4(0.0f, 0.0f, 0.0f, 1.0f);
 
 //returns the conjugate quaternion
 //返回共轭四元数
-float4 conjugateQuaternion(float4 quaternion)
+inline float4 conjugateQuaternion(float4 quaternion)
 {
     return float4(-quaternion.xyz, quaternion.w);
 }   
 
 //derive the rotated vector by the rotational quaternion
 //得出通过旋转四元数旋转后的向量
-float3 rotateVector(float3 vec, float4 quaternion)
+inline float3 quaternionRotateVector(float3 vec, float4 quaternion)
 {
     //设四元数为 a + bi + cj + dk ，向量为 xi + yj + zk ，则旋转后向量为：
     //[(a^2 + b^2 - c^2 - d^2)x + (   2bc    -    2ad   )y + (   2ac    +    2bd   )z]i +
@@ -86,20 +86,29 @@ float3 rotateVector(float3 vec, float4 quaternion)
         - cross(cross(quaternion.xyz, vec), quaternion.xyz);// = - ( (c^2 + d^2)x + (-bc)y + (-bd)z, (-bc)x + (d^2 + b^2)y + (-cd)z, (-bd)x + (-cd)y + (c^2 + b^2)z )
 }
 
-//returns the rotated quaternion of corresponding multiple of angle
-//返回角度的对应倍数的旋转四元数
-float4 angleMultiplier(float4 quaternion, float factor)
+//returns the power of the rotated quaternion
+//返回旋转四元数的幂
+//（旋转四元数的幂代表了使用该四元数旋转了几次，假如旋转四元数代表的是每秒旋转速度，则可以求旋转四元数的旋转时间次方，来求出旋转了多少）
+inline float4 quaternionPow(float4 quaternion, float factor)
 {
-    float length = length(quaternion.xyz);
-    if (length < EPSILON) return UNIT_QUATERNION;
+    float lengthVector = length(quaternion.xyz);
+    if (lengthVector < EPSILON) return UNIT_QUATERNION;
 
-    float theta = atan2(quaternion.w, length) * factor;//atan2 = atan(q.w / length)
-    return float4(sin(theta) * quaternion.xyz / length, cos(theta));
+    float theta = atan2(quaternion.w, lengthVector) * factor;//atan2 = atan(q.w / length)
+    return float4(sin(theta) * quaternion.xyz / lengthVector, cos(theta));
+}
+
+//returns the product of the rotated quaternion
+//返回四元数的乘积，即基本形式(xi+yj+zk+w)形式下两个四元数的乘积，用于表述两次旋转后的结果（即旋转的加法）
+//（此处注意第一次旋转应该在后面）
+inline float4 quaternionProduct(float4 q2, float4 q1)
+{
+    return float4(q1.xyz * q2.w + q2.xyz * q1.w + cross(q1.xyz, q2.xyz), q1.w * q2.w - dot(q1.xyz, q2.xyz));
 }
 
 //derive the rotational quaternion from the axis and angle of rotation
 //根据旋转轴和旋转角得出旋转四元数
-float4 getRotationalQuaternion(float3 axis, float angle)
+inline float4 getRotationalQuaternion(float3 axis, float angle)
 {
     float theta = angle * 0.5f;
     return float4(sin(theta) * normalize(axis), cos(theta));
@@ -107,7 +116,7 @@ float4 getRotationalQuaternion(float3 axis, float angle)
 
 //derive the rotational quaternion of the angle of rotation from the 'from' vector to the 'to' vector
 //得出从from向量旋转到to向量角度的旋转四元数
-float4 getQuaternionFromTo(float3 from, float3 to)
+inline float4 getQuaternionFromTo(float3 from, float3 to)
 {
     float3 crossProduct = cross(from, to);//得到两向量叉积
     float dotCross = dot(crossProduct, crossProduct);
@@ -122,21 +131,21 @@ float4 getQuaternionFromTo(float3 from, float3 to)
 }
 
 //get the axis of rotation of quaternion
-float3 getAxisOfQuaternion(float4 quaternion)
+inline float3 getQuaternionAxis(float4 quaternion)
 {
     float dotVector = dot(quaternion.xyz, quaternion.xyz);
     return dotVector < EPSILON ? float3(0.0f, 0.1f, 0.0f) : quaternion.xyz / sqrt(dotVector);
 }
 
 //get the angle of rotation of quaternion
-float getAngleOfQuaternion(float4 quaternion)
+inline float getQuaternionAngle(float4 quaternion)
 {
     return 2.0f * acos(clamp(quaternion.w, -1.0f, 1.0f));
 }
 
 //using normalized linear interpolation for quaternion
 //(对四元数来说，归一化线性插值其实一种平滑的非线性插值)(输入值必须为单位向量，否则结果不会经过初始、最终向量)
-float4 nlerp(float4 quaternion1, float4 quaternion2, float t)
+inline float4 nlerp(float4 quaternion1, float4 quaternion2, float t)
 {
     float4 value = (1 - t) * quaternion1 + t * quaternion2;
     float dotValue = dot(value, value);
@@ -145,7 +154,7 @@ float4 nlerp(float4 quaternion1, float4 quaternion2, float t)
 
 //using spherical linear interpolation for quaternions
 //(对四元数的真正线性插值)(比nlerp慢，在四元数夹角比较小时可以交给nlerp)
-float4 slerp(float4 quaternion1, float4 quaternion2, float t)
+inline float4 slerp(float4 quaternion1, float4 quaternion2, float t)
 {
     //检查四元数夹角是否过小，防止后续操作中sinTheta由于浮点数的性质被近似为0.0
     float cosTheta = dot(normalize(quaternion1), normalize(quaternion2));
@@ -156,16 +165,68 @@ float4 slerp(float4 quaternion1, float4 quaternion2, float t)
 }
 
 //======================================================
+////------------------------------------------------------------------------------------------------------------
+//======================================================
+//Random
 
+//线性同余法生成随机数
+inline float linearCongruentialGenerator(float seed)
+{
+    float fractional = frac(seed);
+    return frac((1103515245 * ((uint)floor(seed + 1111 * fractional)) + 12345) % (1 << 31));
+}
 
+//生成0到1的随机数
+inline float random(float seed)
+{
+    return linearCongruentialGenerator(seed);
+}
 
+//生成随机的单位向量
+inline float3 randomUniformVector(float seed)
+{
+    return normalize(float3(random(seed + 114.514f), random(seed * 11.0f + 45.14f),
+            random(seed * 114.0f + 51.4f)));
+}
+
+//生成min到max的随机值
+inline float randomInRange(float seed, float min, float max)
+{
+    return min + (max - min) * random(seed);
+}
+
+//利用欧文-霍尔分布近似的标准高斯(正态)分布，生成值范围为-1到1
+inline float random_Gaussian(float seed)
+{
+    float res = 0.0f;
+    for (int i = 0;i < 12;i++) res += random(seed + i * 114.514); //此时res的范围为(0, 12)
+    return (res - 6.0f) / 6.0f; //减6后范围为(-6, 6)，再除6范围则为(-1, 1)
+}
+
+//生成符合近似高斯分布的、范围为((-1~1), (-1~1), (-1~1))的、非单位三维向量
+inline float3 randomVector_Gaussian(float seed)
+{
+    return float3(random_Gaussian(seed + 114.514f), random_Gaussian(seed * 11.0f + 45.14f),
+                random_Gaussian(seed * 114.0f + 51.4f));
+}
+
+//在单位圆内生成符合标准正态分布的随机点
+inline float3 randomPositionInUnitCircle_Gaussian(float seed)
+{
+    float3 direction = randomUniformVector(seed + 4.6f);
+    float value = abs(random_Gaussian(seed + 1.14f));//根据高斯分布生成0到1之间的随机值
+    return direction * value;
+}
+
+//======================================================
+//------------------------------------------------------------------------------------------------------------
 //======================================================
 //Color
 
 //convert rgb color to hsv color.
 //the range of hsv = (0~360, 0~1, 0~1)
 //the range of rgb = (0~1, 0~1, 0~1)
-float3 rgb2hsv(float3 rgb)
+inline float3 rgb2hsv(float3 rgb)
 {
     float maxRGB = max(max(rgb.r, rgb.g), rgb.b);
     float minRGB = min(min(rgb.r, rgb.g), rgb.b);
@@ -192,7 +253,7 @@ float3 rgb2hsv(float3 rgb)
 //convert hsv color to rgb color.
 //the range of hsv = (0~360, 0~1, 0~1)
 //the range of rgb = (0~1, 0~1, 0~1)
-float3 hsv2rgb(float3 hsv)
+inline float3 hsv2rgb(float3 hsv)
 {
     float H = hsv.x, S = hsv.y, V = hsv.z;
     //色相所在的区域，取值范围为[0, 5]之间的整数
@@ -221,5 +282,6 @@ float3 hsv2rgb(float3 hsv)
 }
 
 //======================================================
+//------------------------------------------------------------------------------------------------------------
 
 #endif
