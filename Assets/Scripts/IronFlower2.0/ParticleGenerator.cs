@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using ComputeShaderStruct;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -177,6 +178,9 @@ namespace ParticleGenerator
             
             //分配线程，进行ComputeShader计算
             computeShader.Dispatch(_updateKernelId, _particlesNumBuffers[index] / 64, 1, 1);
+            
+            _materialPropertyBlock.SetBuffer(_particlesBufferId, _particlesBuffers[index]);
+            
             //绘制粒子
             Graphics.DrawMeshInstancedIndirect(_mesh, 0, material, new Bounds(entityPosition, 50.0f * Vector3.one),
                                                 _instanceArgsBuffers[index], 0, _materialPropertyBlock, ShadowCastingMode.Off);
