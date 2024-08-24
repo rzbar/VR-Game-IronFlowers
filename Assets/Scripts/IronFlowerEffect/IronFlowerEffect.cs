@@ -15,7 +15,7 @@ public class IronFlowerEffect : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown("j"))
+        if (Input.GetKeyDown(KeyCode.J) || Input.GetKeyDown(KeyCode.Mouse0))
         {
             IronFlowerEffectTest();
         }

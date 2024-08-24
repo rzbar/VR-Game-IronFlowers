@@ -1,0 +1,81 @@
+#pragma kernel Init
+#pragma kernel Update
+
+#include "Assets/utils/ComputeShader/MathFunction.cginc"
+#include "Assets/utils/ComputeShader/PhysicsComputer.cginc"
+
+#include "Assets/utils/ComputeShader/ComputeShaderStruct.cginc"
+
+RWStructuredBuffer<Particle_Color> particlesBuffer;
+
+float3 entityPosition; //粒子总体在此位置开始生成
+float3 initialDir; //粒子总体初始的速度方向
+float maxBiasAngle; //速度方向的最大偏移角度(范围为0~180)
+float posEffectValue; //位置对速度大小和速度方向的影响，范围0到1（例如：值越大，越靠外的粒子速度越小，速度角度偏移越大）
+
+float2 scaleRange;//粒子大小范围 (min, max)
+float2 speedRange;//粒子速度范围 (min, max)
+float2 lifetimeRange;//生命周期范围 (min, max)
+
+//初始化粒子
+[numthreads(64, 1, 1)]
+void Init(uint id : SV_GroupIndex)
+{
+    float seedBias = id + 1.14514;
+    initialDir = normalize(initialDir);
+    maxBiasAngle = clamp(maxBiasAngle, 0, 180);
+    posEffectValue = clamp(posEffectValue, 0, 1);
+    //在entityPosition周围以正态分布生成点
+    float3 relativePosition = randomPositionInUnitCircle_Gaussian(id + seedBias++);
+    particlesBuffer[id].position = entityPosition + relativePosition;
+    //生成速度，可由posEffectValue位置影响系数调节越靠外方向偏移角度越大、速度越慢的程度(先生成一个和其位置相对应的单位向量，再乘以一个随机速度值)
+    float3 relativeTangent = relativePosition - initialDir * dot(relativePosition, initialDir);//以initialDir为法线，相对位置对应的切线值（相对位置距法线的“距离”）
+    float posEffectFactor = posEffectValue * length(relativeTangent);
+    float thetaBias = (posEffectFactor + (1 - posEffectValue) * random(id + seedBias++))
+                        * maxBiasAngle;//由 对位置系数和随机生成的系数进行插值生成的系数 乘以最大偏移角得出偏移角
+    float3 speedDir = sin(thetaBias) * normalize(relativeTangent) + cos(thetaBias) * initialDir;//速度方向
+    float speedValue = speedRange.x + (posEffectFactor + (1 - posEffectValue) * random(id + seedBias++)) * (speedRange.y - speedRange.x);//速度大小
+    particlesBuffer[id].velocity = speedDir * speedValue;
+    //根据范围随机生成粒子大小
+    particlesBuffer[id].scale = scaleRange.x + random(id + seedBias++) * (scaleRange.y - scaleRange.x);
+    //根据范围随机生成粒子生命周期
+    particlesBuffer[id].life.y = lifetimeRange.x + random(id + seedBias++) * (lifetimeRange.y - lifetimeRange.x);
+    //设置粒子颜色为白色（暂用）
+    particlesBuffer[id].color = float4(1.0f, 1.0f, 1.0f, 0.0f);
+}
+
+float deltaTime; //时间增量
+float3 physicalFactor; //相关物理系数 (gravity, restitution, friction)
+float4 ground; //用于碰撞计算的地板信息 (normal.xyz, height)
+
+//更新粒子信息
+[numthreads(64, 1, 1)]
+void Update(uint id : SV_GroupIndex)
+{
+    float2 life = particlesBuffer[id].life;
+    life.x += deltaTime;
+    particlesBuffer[id].life = life;
+
+    float lifeFactor = life.x / life.y;
+    lifeFactor = step(lifeFactor, 1);//此时当系数大于1，即age大于lifeTime时，等于0。否则为1
+
+    float3 pos = particlesBuffer[id].position;//读取粒子的位置
+    float3 velocity = particlesBuffer[id].velocity;//读取粒子的速度
+    float radius = particlesBuffer[id].scale * 0.5f * lifeFactor;//读取粒子半径（尺寸的一半）（当生命周期结束时，半径为0）
+
+    //gravity
+    velocity.y -= deltaTime * physicalFactor.x;
+
+    //与地面碰撞计算
+    CollisionResult res = sphereVSground(pos, radius, ground.xyz, ground.w,
+                            velocity, physicalFactor.y, physicalFactor.z);
+    pos = res.pos;
+    velocity = res.velocity;
+
+    //迭代
+    pos += velocity * deltaTime;
+
+    //write back
+    particlesBuffer[id].position = pos;
+    particlesBuffer[id].velocity = velocity;
+}

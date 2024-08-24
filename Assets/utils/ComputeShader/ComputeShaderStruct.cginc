@@ -31,9 +31,10 @@ struct Particle_Color
 
     float3 velocity;
 
-    float3 color;
+    float4 color;
 };
 
+//用于有形状的粒子，例如正方形等
 struct SpecialParticle_Color
 {
     
@@ -46,7 +47,7 @@ struct SpecialParticle_Color
     float4 rotation;
     float4 angularVelocity;
     
-    float3 color;
+    float4 color;
 };
 
 #endif
