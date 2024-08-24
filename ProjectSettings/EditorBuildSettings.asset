@@ -14,6 +14,10 @@ EditorBuildSettings:
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: 2238d457089b9494896515a25debf01c,
       type: 2}
+    Unity.XR.PICO.LivePreview.Settings: {fileID: 11400000, guid: 372abeabc6fce0a4fb1f97febb13515f,
+      type: 2}
+    Unity.XR.PXR.Settings: {fileID: 11400000, guid: 536d276839a949b48944ac6aa8c47339,
+      type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 190512a7e4be0f14db892b11a5973b9a,
       type: 2}
     com.unity.xr.openxr.settings4: {fileID: 11400000, guid: d46af47ef96b00a49825a3c49181afa0,
