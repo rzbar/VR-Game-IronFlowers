@@ -33,24 +33,20 @@ Shader "IronFlower"
 
                     float4 color;
                 };
-                StructuredBuffer<Particle_Color> _particleDataBuffer;
+                StructuredBuffer<Particle_Color> _ParticleDataBuffer;
             #endif
 
-            UNITY_INSTANCING_BUFFER_START(Props)
-                UNITY_DEFINE_INSTANCED_PROP(float4, _Color)
-            UNITY_INSTANCING_BUFFER_END(Props)
+            half4 _Color;
 
             struct appdata
             {
                 float4 vertex : POSITION;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
-                //uint instanceId : SV_InstanceId;
+                uint instanceID : SV_InstanceID;
             };
 
             struct v2f
             {
                 float4 posCS : SV_POSITION;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
 
@@ -59,9 +55,7 @@ Shader "IronFlower"
                 v2f o;
                 
                 #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-                    UNITY_SETUP_INSTANCE_ID(v);
-                    UNITY_TRANSFER_INSTANCE_ID(v, o);
-                    Particle_Color particleData = _particleDataBuffer[v.instanceID];
+                    Particle_Color particleData = _ParticleDataBuffer[v.instanceID];
                     v.vertex += float4(particleData.position, 0.0f);
                 #endif
                 
@@ -72,8 +66,7 @@ Shader "IronFlower"
 
             half4 frag(v2f i) : SV_Target
             {
-                UNITY_SETUP_INSTANCE_ID(i);
-                return UNITY_ACCESS_INSTANCED_PROP(Props, _Color);
+                return _Color;
             }
             ENDHLSL
         }

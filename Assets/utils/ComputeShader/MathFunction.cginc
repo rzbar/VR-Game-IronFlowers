@@ -61,9 +61,6 @@ inline float3 slerp(float3 a, float3 b, float t)
 //======================================================
 //Quaternion
 
-<<<<<<< HEAD
-
-=======
 float4 UNIT_QUATERNION = float4(0.0f, 0.0f, 0.0f, 1.0f);
 
 //returns the conjugate quaternion
@@ -116,7 +113,6 @@ inline float4 getRotationalQuaternion(float3 axis, float angle)
     float theta = angle * 0.5f;
     return float4(sin(theta) * normalize(axis), cos(theta));
 }
->>>>>>> f8f8aca152b0faae755c92148b189638f0fe1c3a
 
 //derive the rotational quaternion of the angle of rotation from the 'from' vector to the 'to' vector
 //得出从from向量旋转到to向量角度的旋转四元数
