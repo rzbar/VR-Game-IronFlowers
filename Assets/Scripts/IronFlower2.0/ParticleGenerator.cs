@@ -13,12 +13,12 @@ namespace ParticleGenerator
 
         [Range(0.0f, 30.0f)] public float entityLifetime = 10.0f;
         
-        public Vector3 entityPosition = new Vector3(0.0f, 0.1f, 0.0f); //粒子总体在此位置开始生成
+        public Vector3 entityPosition = new Vector3(0.0f, 0.0f, 0.0f); //粒子总体在此位置开始生成
         public Vector3 initialDir = Vector3.up; //粒子总体初始的速度方向
         public float maxBiasAngle = 30.0f; //速度方向的最大偏移角度(范围为0~180)
         public float posEffectValue = 0.6f; //位置对速度大小和速度方向的影响，范围0到1（例如：值越大，越靠外的粒子速度越小，速度角度偏移越大）
 
-        public int particlesNum = 12800; //粒子数量
+        public int particlesNum = 128000; //粒子数量
         public Vector2 scaleRange = new Vector2(0.01f, 0.03f); //粒子大小范围 (min, max)
         public Vector2 speedRange = new Vector2(5.0f, 6.0f); //粒子速度范围 (min, max)
         public Vector2 lifetimeRange = new Vector2(5.0f, 7.0f); //生命周期范围 (min, max)
@@ -106,7 +106,7 @@ namespace ParticleGenerator
                         InitParticles(i);
                         break;
                     }
-                    if (i == _bufferNum - 1) Debug.Log("粒子缓存区已达上限，请等待");
+                    if (i == _bufferNum - 1) print("粒子缓存区已达上限，请等待");
                 }
             }
             
@@ -127,7 +127,7 @@ namespace ParticleGenerator
 
         private void InitParticles(int index)
         {
-            //初始化粒子数量缓存
+            //初始化粒子数量缓存(最好为64的倍数)
             _particlesNumBuffers[index] = (particlesNum / 64) * 64;
             //初始化Mesh的实例参数数组，并设置到内存缓冲区(用于DrawMeshInstancedIndirect函数(用于GPU实例化))
             uint[] instanceArgs = new uint[] { 0, 0, 0, 0, 0 };
@@ -150,8 +150,7 @@ namespace ParticleGenerator
             computeShader.SetFloats(_speedRangeId, new float[] {speedRange.x, speedRange.y});
             computeShader.SetFloats(_lifetimeRangeId, new float[] {lifetimeRange.x, lifetimeRange.y});
             
-            //将粒子信息缓存区数据传递给Init内核(说是material也要传递ComputeBuffer到我们的shader当中去，所以这里传递两次保险)
-            material.SetBuffer(_particlesBufferId, _particlesBuffers[index]);
+            //将粒子信息缓存区数据传递给Init内核
             computeShader.SetBuffer(_initKernelId, _particlesBufferId, _particlesBuffers[index]);
             
             //ComputeShader开始初始化
@@ -163,8 +162,6 @@ namespace ParticleGenerator
 
         private void UpdateParticles(int index)
         {
-            //设置材质的粒子信息缓存区
-            material.SetBuffer(_particlesBufferId, _particlesBuffers[index]);
             //将粒子信息缓存区传递给Update内核
             computeShader.SetBuffer(_updateKernelId, _particlesBufferId, _particlesBuffers[index]);
             
@@ -179,7 +176,8 @@ namespace ParticleGenerator
             //分配线程，进行ComputeShader计算
             computeShader.Dispatch(_updateKernelId, _particlesNumBuffers[index] / 64, 1, 1);
             
-            _materialPropertyBlock.SetBuffer(_particlesBufferId, _particlesBuffers[index]);
+            //给材质代码块设置缓存
+            material.SetBuffer(_particlesBufferId, _particlesBuffers[index]);
             
             //绘制粒子
             Graphics.DrawMeshInstancedIndirect(_mesh, 0, material, new Bounds(entityPosition, 50.0f * Vector3.one),

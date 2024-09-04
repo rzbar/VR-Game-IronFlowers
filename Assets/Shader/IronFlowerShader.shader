@@ -7,20 +7,33 @@ Shader "IronFlower"
 
     SubShader
     {
-        Tags { "RenderType"="Opaque" }
+        Tags { "RenderType"="Opaque" "RenderPipeline" = "UniversalPipeline" }
 
         Pass
         {
+            Tags{"LightMode" = "UniversalForward"}
+            
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
+            
             #pragma multi_compile_instancing
-            #pragma instancing_options nolightprobe	nolightmap
             #pragma instancing_options procedural:setup//表示每次实例渲染时，都会执行setup这个函数（但这里setup什么都没做）
+
+            void setup() {}
+            
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UniversalDOTSInstancing.hlsl" 
 
-            void setup() {}
+            struct appdata
+            {
+                float4 vertex : POSITION;
+            };
+
+            struct v2f
+            {
+                float4 posCS : SV_POSITION;
+            };
 
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
                 struct Particle_Color
@@ -33,29 +46,18 @@ Shader "IronFlower"
 
                     float4 color;
                 };
-                StructuredBuffer<Particle_Color> _ParticleDataBuffer;
+                StructuredBuffer<Particle_Color> particlesBuffer;
             #endif
 
             half4 _Color;
 
-            struct appdata
-            {
-                float4 vertex : POSITION;
-                uint instanceID : SV_InstanceID;
-            };
-
-            struct v2f
-            {
-                float4 posCS : SV_POSITION;
-            };
-
-
-            v2f vert(appdata v)
+            v2f vert(appdata v, uint instanceID : SV_InstanceID)
             {
                 v2f o;
                 
                 #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-                    Particle_Color particleData = _ParticleDataBuffer[v.instanceID];
+                    Particle_Color particleData = particlesBuffer[instanceID];
+                    //v.vertex *= particleData.scale;
                     v.vertex += float4(particleData.position, 0.0f);
                 #endif
                 
