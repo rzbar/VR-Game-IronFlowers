@@ -36,17 +36,15 @@ Shader "IronFlower"
             };
 
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-                struct Particle_Color
+                struct Particle
                 {
                     float3 position;
                     float scale;
                     float2 life; //(age lifeTime)
 
                     float3 velocity;
-
-                    float4 color;
                 };
-                StructuredBuffer<Particle_Color> particlesBuffer;
+                StructuredBuffer<Particle> particlesBuffer;
             #endif
 
             half4 _Color;
@@ -56,7 +54,7 @@ Shader "IronFlower"
                 v2f o;
                 
                 #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-                    Particle_Color particleData = particlesBuffer[instanceID];
+                    Particle particleData = particlesBuffer[instanceID];
                     //v.vertex *= particleData.scale;
                     v.vertex += float4(particleData.position, 0.0f);
                 #endif
