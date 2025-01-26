@@ -3,7 +3,6 @@ using System.Collections;
 using ComputeShaderStruct;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.UIElements;
 
 namespace ParticleGenerator
 {
@@ -36,10 +35,10 @@ namespace ParticleGenerator
         private int _bufferNum = 3; //缓存数量，决定最多有多少个粒子系统同时存在，不建议超过3个
         private ComputeBuffer[] _particlesBuffers;
         private int[] _particlesNumBuffers; //保存每个缓存对应的粒子数量
-        private MaterialPropertyBlock[] _materialPropertyBlocks;
         private ComputeBuffer[] _instanceArgsBuffers;
 
         private Mesh _mesh;
+        private MaterialPropertyBlock _materialPropertyBlock;
 
         private int _initKernelId;
         private int _updateKernelId;
@@ -58,16 +57,13 @@ namespace ParticleGenerator
         private int _deltaTimeId;
         private int _physicalFactorId;
         private int _groundId;
-        
-        //测试
-        Particle[] output;
 
         private void OnEnable()
         {
             //创建Mesh
             _mesh = MeshFactory.MeshFactory.SmoothShadedSphere(6, 7);
             //创建GPU实例化需要的材质代码块
-            _materialPropertyBlocks = new MaterialPropertyBlock[_bufferNum];
+            _materialPropertyBlock = new MaterialPropertyBlock();
             //初始化实例化缓存数组
             _instanceArgsBuffers = new ComputeBuffer[_bufferNum];
             
@@ -105,7 +101,7 @@ namespace ParticleGenerator
             {
                 for (int i = 0; i < _bufferNum; i++)
                 {
-                    if (_particlesBuffers[i] == null && _instanceArgsBuffers[i] == null && _particlesNumBuffers[i] == 0 && _materialPropertyBlocks[i] == null)
+                    if (_particlesBuffers[i] == null && _instanceArgsBuffers[i] == null && _particlesNumBuffers[i] == 0)
                     {
                         InitParticles(i);
                         break;
@@ -116,7 +112,7 @@ namespace ParticleGenerator
             
             for (int i = 0; i < _bufferNum; i++)
             {
-                if (_particlesBuffers[i] != null && _instanceArgsBuffers[i] != null && _particlesNumBuffers[i] != 0 && _materialPropertyBlocks[i] != null)
+                if (_particlesBuffers[i] != null && _instanceArgsBuffers[i] != null && _particlesNumBuffers[i] != 0)
                     UpdateParticles(i);
             }
         }
@@ -133,8 +129,6 @@ namespace ParticleGenerator
         {
             //初始化粒子数量缓存(最好为64的倍数)
             _particlesNumBuffers[index] = (particlesNum / 64) * 64;
-            //初始化材质参数块
-            _materialPropertyBlocks[index] = new MaterialPropertyBlock();
             //初始化Mesh的实例参数数组，并设置到内存缓冲区(用于DrawMeshInstancedIndirect函数(用于GPU实例化))
             uint[] instanceArgs = new uint[] { 0, 0, 0, 0, 0 };
             instanceArgs[0] = (uint)_mesh.GetIndexCount(0);
@@ -168,13 +162,8 @@ namespace ParticleGenerator
 
         private void UpdateParticles(int index)
         {
-            output = new Particle[_particlesNumBuffers[index]];
-            
             //将粒子信息缓存区传递给Update内核
             computeShader.SetBuffer(_updateKernelId, _particlesBufferId, _particlesBuffers[index]);
-            //给材质代码块设置缓存
-            _materialPropertyBlocks[index].SetBuffer(_particlesBufferId, _particlesBuffers[index]);
-            //material.SetBuffer(_particlesBufferId, _particlesBuffers[index]);
             
             //设置时间增量
             computeShader.SetFloat(_deltaTimeId, timeScale * Time.deltaTime);
@@ -187,13 +176,12 @@ namespace ParticleGenerator
             //分配线程，进行ComputeShader计算
             computeShader.Dispatch(_updateKernelId, _particlesNumBuffers[index] / 64, 1, 1);
             
+            //给材质代码块设置缓存
+            material.SetBuffer(_particlesBufferId, _particlesBuffers[index]);
+            
             //绘制粒子
             Graphics.DrawMeshInstancedIndirect(_mesh, 0, material, new Bounds(entityPosition, 50.0f * Vector3.one),
-                                                _instanceArgsBuffers[index], 0, _materialPropertyBlocks[index], ShadowCastingMode.Off);
-            
-            //测试
-            _particlesBuffers[index].GetData(output);
-            print(output[0].position);
+                                                _instanceArgsBuffers[index], 0, _materialPropertyBlock, ShadowCastingMode.Off);
         }
 
         private void DestroyParticles(int index)
@@ -204,12 +192,6 @@ namespace ParticleGenerator
                 _particlesBuffers[index] = null;
 
                 _particlesNumBuffers[index] = 0;
-            }
-
-            if (_materialPropertyBlocks[index] != null)
-            {
-                _materialPropertyBlocks[index].Clear();
-                _materialPropertyBlocks[index] = null;
             }
 
             if (_instanceArgsBuffers[index] != null)
@@ -225,14 +207,4 @@ namespace ParticleGenerator
             action();
         }
     }
-}
-
-//测试
-struct Particle
-{
-    public Vector3 position;
-    public float scale;
-    public Vector2 life;
-
-    public Vector3 velocity;
 }

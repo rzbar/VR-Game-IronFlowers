@@ -6,7 +6,7 @@
 
 #include "Assets/utils/ComputeShader/ComputeShaderStruct.cginc"
 
-shared RWStructuredBuffer<Particle> particlesBuffer;
+RWStructuredBuffer<Particle_Color> particlesBuffer;
 
 float3 entityPosition; //粒子总体在此位置开始生成
 float3 initialDir; //粒子总体初始的速度方向
@@ -40,6 +40,8 @@ void Init(uint id : SV_GroupIndex)
     particlesBuffer[id].scale = scaleRange.x + random(id + seedBias++) * (scaleRange.y - scaleRange.x);
     //根据范围随机生成粒子生命周期
     particlesBuffer[id].life.y = lifetimeRange.x + random(id + seedBias++) * (lifetimeRange.y - lifetimeRange.x);
+    //设置粒子颜色为白色（暂用）
+    particlesBuffer[id].color = float4(1.0f, 1.0f, 1.0f, 0.0f);
 }
 
 float deltaTime; //时间增量
