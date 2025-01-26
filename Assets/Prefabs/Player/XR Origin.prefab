@@ -626,7 +626,7 @@ MonoBehaviour:
   m_TrackingStateInput:
     m_UseReference: 0
     m_Action:
-      m_Name: 
+      m_Name: Tracking State Input
       m_Type: 0
       m_ExpectedControlType: 
       m_Id: 8d136ef9-c049-429a-942d-cda0ceaf2d48
@@ -1802,7 +1802,7 @@ MonoBehaviour:
   foregroundLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  backLayerMask:
+  backgroundLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
   backgroundCamObj: {fileID: 0}

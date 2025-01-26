@@ -1,0 +1,58 @@
+[
+
+  {
+    "ID": 1,
+    "Name": "大剑",
+    "WeaponType": "LongSword",
+    "Path": "大剑",
+    "Durability": 10,
+    "AttackPower": 1,
+    "ExpendNum": 0.1,
+    "WeaponDes": "一把崭新且锋利的长剑",
+    "HandPos": "0,0,0",
+    "HandRot": "-90,0,0",
+    "HandScale": "2,3,2",
+    "DurabilityDes": "耐久值太低伤害就会降低",
+    "RepairPrice": 6,
+    "Property": "大剑",
+    "InitLevel": 1,
+    "MaxLevel": 3
+  },
+  {
+    "ID": 2,
+    "Name": "长剑",
+    "WeaponType": "LongSword",
+    "Path": "长剑",
+    "Durability": 7,
+    "AttackPower": 2,
+    "ExpendNum": 0.3,
+    "WeaponDes": "一把久经沙场的铁剑",
+    "HandPos": "0.006,-0.123,-0.402",
+    "HandRot": "0,0,0",
+    "HandScale": "1.31,1.51,2",
+    "DurabilityDes": "耐久值太低伤害就会降低",
+    "RepairPrice": 7,
+    "Property": "长剑",
+    "InitLevel": 1,
+    "MaxLevel": 3
+  },
+  {
+    "ID": 3,
+    "Name": "连弩",
+    "WeaponType": "Crossbow",
+    "Path": "连弩",
+    "Durability": 10,
+    "AttackPower": 5,
+    "ExpendNum": 0.2,
+    "WeaponDes": "这是一把精致的连弩",
+    "HandPos": "0.006,-0.027,0.27",
+    "HandRot": "0,0,0",
+    "HandScale": "0.5,0.5,0.5",
+    "ReloadTime": 0.2,
+    "DurabilityDes": "耐久值太低射程距离就会降低",
+    "RepairPrice": 8,
+    "Property": "连弩",
+    "InitLevel": 1,
+    "MaxLevel": 4
+  }
+]

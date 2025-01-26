@@ -1,0 +1,41 @@
+[
+
+  {
+    "CID": 0,
+    "HandPos": "0.009799991,0.0121,0.009199999",
+    "HandRot": "0,46.798,90",
+    "HandScale": "0.04972547,0.04972547,0.04972547",
+    "isLeft": "false",
+    "ItemPath": "绷带",
+    "CurrentItemTime": 4,
+    "ItemType": "AddHP",
+    "AddHP": 20
+  },
+  {
+    "CID": 1,
+    "HandPos": "0.0313,0.0128,-0.0137",
+    "HandRot": "-6.282,22.533,76.356",
+    "HandScale": "0.5112275,0.5112275,0.5112275",
+    "isLeft": "false",
+    "ItemPath": "止痛药",
+    "CurrentItemTime": 2.5,
+    "ItemType": "LastHP",
+    "AddHP": 5,
+    "LastTime": 6,
+    "OneSecond": 2
+  },
+  {
+    "CID": 2,
+    "HandPos": "-0.0297,0.0214,0.0319",
+    "HandRot": "-2.1,310.667,13.992",
+    "HandScale": "0.30173,0.30173,0.30173",
+    "isLeft": "false",
+    "ItemPath": "注射器",
+    "CurrentItemTime": 6.5,
+    "ItemType": "SpeedUp",
+    "LastTime": 10,
+    "AddProportion": 15
+  }
+
+
+]

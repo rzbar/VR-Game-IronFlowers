@@ -1,0 +1,31 @@
+[
+
+  {
+    "Level": 1,
+    "Probability": 75,
+    "Durability": 25,
+    "ExpendNum": 1,
+    "PriceNum": 800
+  },
+  {
+    "Level": 2,
+    "Probability": 55,
+    "Durability": 35,
+    "ExpendNum": 0.8,
+    "PriceNum": 1300
+  },
+  {
+    "Level": 3,
+    "Probability": 35,
+    "Durability": 50,
+    "ExpendNum": 0.7,
+    "PriceNum": 2000
+  },
+  {
+    "Level": 4,
+    "Probability": 20,
+    "Durability": 60,
+    "ExpendNum": 0.5,
+    "PriceNum": 2300
+  }
+]

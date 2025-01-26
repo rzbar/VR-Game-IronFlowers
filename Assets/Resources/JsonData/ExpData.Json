@@ -1,0 +1,52 @@
+[
+  {
+    "ID": 1,
+    "ExpNum": 50,
+    "MaxHP": 100
+  },
+  {
+    "ID": 2,
+    "ExpNum": 75,
+    "MaxHP": 110
+  },
+  {
+    "ID": 3,
+    "ExpNum": 120,
+    "MaxHP": 120
+  },
+  {
+    "ID": 4,
+    "ExpNum": 150,
+    "MaxHP": 130
+  },
+  {
+    "ID": 5,
+    "ExpNum": 180,
+    "MaxHP": 140
+  },
+  {
+    "ID": 6,
+    "ExpNum": 240,
+    "MaxHP": 150
+  },
+  {
+    "ID": 7,
+    "ExpNum": 330,
+    "MaxHP": 160
+  },
+  {
+    "ID": 8,
+    "ExpNum": 460,
+    "MaxHP": 170
+  },
+  {
+    "ID": 9,
+    "ExpNum": 550,
+    "MaxHP": 180
+  },
+  {
+    "ID": 10,
+    "ExpNum": 600,
+    "MaxHP": 190
+  }
+]

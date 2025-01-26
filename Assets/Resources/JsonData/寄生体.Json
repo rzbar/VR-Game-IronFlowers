@@ -1,0 +1,30 @@
+[
+
+  {
+    "LevelD": 1,
+    "EnemyHP": 4,
+    "ImmuneToDamage": 20,
+    "MeleeAttackNum": 3,
+    "RemotelyAttackNum": 2,
+    "AddExp":5,
+    "EnemyType": "Parasites"
+  },
+  {
+    "LevelD": 2,
+    "EnemyHP": 5,
+    "ImmuneToDamage": 40,
+    "MeleeAttackNum": 4,
+    "RemotelyAttackNum": 3,
+    "AddExp": 6,
+    "EnemyType": "Parasites"
+  },
+  {
+    "LevelD": 3,
+    "EnemyHP": 5,
+    "ImmuneToDamage": 60,
+    "MeleeAttackNum": 4,
+    "RemotelyAttackNum": 3,
+    "AddExp": 7,
+    "EnemyType": "Parasites"
+  }
+]

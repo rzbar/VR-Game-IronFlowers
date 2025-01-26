@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 48491b34c7bdf2b4f974944b3b7ca8e6
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 196127
+  packageName: Classical Crossbow
+  packageVersion: 1.0
+  assetPath: Assets/RyuGiKen/Crossbow/Animations/CrossBow Animator Controller.controller
+  uploadId: 438603

@@ -1,0 +1,37 @@
+[
+
+  {
+    "ID": 1,
+    "Name": "皮盾",
+    "Path": "皮盾",
+    "WeaponType": "Shield",
+    "Durability": 15,
+    "ExpendNum": 1,
+    "ShieldDes": "用兽皮制作的矛盾",
+    "HandPos": "0,0,0",
+    "HandRot": "0,0,0",
+    "HandScale": "1.5,1.5,1.5",
+    "DurabilityDes": "耐久值降低有概率损坏",
+    "RepairPrice": 3,
+    "Property": "皮盾",
+    "InitLevel": 1,
+    "MaxLevel": 3
+  },
+  {
+    "ID": 2,
+    "Name": "铁盾",
+    "Path": "铁盾",
+    "WeaponType": "Shield",
+    "Durability": 25,
+    "ExpendNum": 1,
+    "ShieldDes": "用铁和木头制作的铁盾",
+    "HandPos": "0,0,0",
+    "HandRot": "0,180,0",
+    "HandScale": "1.2,1.2,1.2",
+    "DurabilityDes": "耐久值降低有概率损坏",
+    "RepairPrice": 7,
+    "Property": "铁盾",
+    "InitLevel": 1,
+    "MaxLevel": 5
+  }
+]

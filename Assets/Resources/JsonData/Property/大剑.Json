@@ -1,0 +1,27 @@
+[
+
+  {
+    "Level": 1,
+    "Probability": 80,
+    "AttackPower": 1,
+    "Durability": 10,
+    "ExpendNum": 0.1,
+      "PriceNum": 300
+  },
+  {
+    "Level": 2,
+    "Probability": 70,
+    "AttackPower": 2,
+    "Durability": 12,
+    "ExpendNum": 0.8,
+    "PriceNum": 400
+  },
+  {
+    "Level": 3,
+    "Probability": 50,
+    "AttackPower": 3,
+    "Durability": 15,
+    "ExpendNum": 0.7,
+    "PriceNum": 400
+  }
+]
